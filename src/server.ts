@@ -45,6 +45,7 @@ app.use(
 // CORS configuration - allow requests from frontend
 const allowedOrigins = [
   "http://localhost:3000",
+  "http://localhost:5001",
   "http://localhost:5173", // Vite dev server
   "https://bwl-photo-browser.netlify.app",
 ]
