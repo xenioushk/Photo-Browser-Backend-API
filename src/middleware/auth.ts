@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express"
 import jwt from "jsonwebtoken"
+import { UnauthorizedError } from "../utils/errors"
 
 export interface AuthRequest extends Request {
   user?: {
@@ -8,13 +9,13 @@ export interface AuthRequest extends Request {
   }
 }
 
-export const authenticate = (req: Request, res: Response, next: NextFunction) => {
+export const authenticate = (req: Request, _res: Response, next: NextFunction) => {
   try {
     // Get token from header
     const authHeader = req.headers.authorization
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "No token provided" })
+      throw new UnauthorizedError("No token provided")
     }
 
     const token = authHeader.substring(7) // Remove 'Bearer ' prefix
@@ -28,14 +29,9 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     // Attach user info to request
     ;(req as AuthRequest).user = decoded
 
-    return next()
+    next()
   } catch (error) {
-    if (error instanceof jwt.JsonWebTokenError) {
-      return res.status(401).json({ error: "Invalid token" })
-    }
-    if (error instanceof jwt.TokenExpiredError) {
-      return res.status(401).json({ error: "Token expired" })
-    }
-    return res.status(500).json({ error: "Authentication failed" })
+    // Pass error to error handler middleware
+    next(error)
   }
 }
