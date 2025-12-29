@@ -3,7 +3,9 @@ import dotenv from "dotenv"
 import cors from "cors"
 import helmet from "helmet"
 import morgan from "morgan"
+import swaggerUi from "swagger-ui-express"
 import connectDatabase from "./config/database"
+import { swaggerSpec } from "./config/swagger"
 
 // Rate limiters
 import { apiLimiter } from "./middleware/rateLimiter"
@@ -41,6 +43,9 @@ app.use(express.urlencoded({ extended: true }))
 // Apply general rate limiting to all API routes
 app.use("/api", apiLimiter)
 
+// Swagger API Documentation
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec))
+
 // Routes
 app.use("/api/auth", authRoutes)
 app.use("/api/photos", photoRoutes)
@@ -65,6 +70,7 @@ const PORT = process.env.PORT || 5000
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`)
   console.log(`📡 API endpoint: http://localhost:${PORT}/api`)
+  console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`)
 })
 
 export default app
