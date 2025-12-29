@@ -468,6 +468,46 @@ When validation fails, you'll receive a detailed error response:
 
 #### Query Parameters:
 
+#### Duplicate User:
+
+```json
+{
+  "error": "User with this email or username already exists"
+}
+```
+
+**Status:** `409 Conflict`
+
+#### Invalid Credentials:
+
+```json
+{
+  "error": "Invalid credentials"
+}
+```
+
+**Status:** `401 Unauthorized`
+
+#### Missing Token:
+
+```json
+{
+  "error": "No token provided"
+}
+```
+
+**Status:** `401 Unauthorized`
+
+#### Resource Not Found:
+
+```json
+{
+  "error": "Photo not found"
+}
+```
+
+**Status:** `404 Not Found`
+
 - `_limit`: 1-100 (default: 18)
 - `_page`: Positive integer (default: 1)
 - `sort`: One of `title`, `createdAt`, `updatedAt`
