@@ -18,6 +18,7 @@ Production-ready RESTful API for Photo Browser Application with JWT authenticati
 - **bcryptjs**: Password hashing with salt rounds
 - **helmet**: Security headers
 - **cors**: Cross-origin resource sharing
+- **express-rate-limit**: API rate limiting to prevent abuse
 
 ### Image Processing & Storage
 
@@ -317,6 +318,7 @@ photo-browser-app-backend/
 │   │   └── users.ts             # User routes
 │   ├── middleware/
 │   │   ├── auth.ts              # JWT authentication
+│   │   ├── rateLimiter.ts       # Rate limiting configuration
 │   │   └── upload.ts            # Multer file upload config
 │   ├── scripts/
 │   │   └── seedDatabase.ts      # Seed from JSONPlaceholder
@@ -337,6 +339,37 @@ npm run build    # Compile TypeScript to JavaScript
 npm start        # Run production server
 npm run seed     # Seed database with JSONPlaceholder data
 ```
+
+## 🛡️ Rate Limiting
+
+API rate limiting is implemented to prevent abuse and ensure fair usage:
+
+### Rate Limits:
+
+- **General API Routes**: 100 requests per 15 minutes
+- **Authentication Routes** (login/register): 5 requests per 15 minutes
+- **Upload Routes**: 10 requests per hour
+
+### Response Headers:
+
+When rate limit is applied, the following headers are included:
+
+```
+RateLimit-Limit: 100
+RateLimit-Remaining: 99
+RateLimit-Reset: 1640000000
+```
+
+### Rate Limit Exceeded Response:
+
+```json
+{
+  "error": "Too many requests from this IP, please try again later.",
+  "retryAfter": "15 minutes"
+}
+```
+
+**Status Code:** `429 Too Many Requests`
 
 ## 🌐 Connecting Frontend
 
