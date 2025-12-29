@@ -143,3 +143,94 @@ export const uploadPhoto = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Failed to upload photo" })
   }
 }
+
+// PUT /api/photos/:id - Update photo
+export const updatePhoto = async (req: Request, res: Response) => {
+  try {
+    const { title, albumId } = req.body
+    const userId = (req as AuthRequest).user?.userId
+    const photoId = parseInt(req.params.id)
+
+    // Find photo
+    const photo = await Photo.findOne({ id: photoId })
+    if (!photo) {
+      return res.status(404).json({ error: "Photo not found" })
+    }
+
+    // Check if user owns this photo
+    if (photo.userId.toString() !== userId) {
+      return res.status(403).json({ error: "You can only update your own photos" })
+    }
+
+    // Verify album exists if albumId provided
+    if (albumId) {
+      const album = await Album.findOne({ id: parseInt(albumId) })
+      if (!album) {
+        return res.status(404).json({ error: "Album not found" })
+      }
+      photo.albumId = album._id
+    }
+
+    // Update fields
+    if (title) photo.title = title
+
+    await photo.save()
+
+    const updatedPhoto = await Photo.findById(photo._id).populate("albumId", "title").populate("userId", "name email")
+
+    return res.json({
+      message: "Photo updated successfully",
+      photo: updatedPhoto,
+    })
+  } catch (error) {
+    console.error("Update error:", error)
+    return res.status(500).json({ error: "Failed to update photo" })
+  }
+}
+
+// DELETE /api/photos/:id - Delete photo
+export const deletePhoto = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as AuthRequest).user?.userId
+    const photoId = parseInt(req.params.id)
+
+    // Find photo
+    const photo = await Photo.findOne({ id: photoId })
+    if (!photo) {
+      return res.status(404).json({ error: "Photo not found" })
+    }
+
+    // Check if user owns this photo
+    if (photo.userId.toString() !== userId) {
+      return res.status(403).json({ error: "You can only delete your own photos" })
+    }
+
+    // Extract public ID from Cloudinary URL to delete the image
+    const urlParts = photo.url.split("/")
+    const publicIdWithExt = urlParts[urlParts.length - 1]
+    const publicId = `photo-browser/${publicIdWithExt.split(".")[0]}`
+
+    const thumbnailParts = photo.thumbnailUrl.split("/")
+    const thumbnailIdWithExt = thumbnailParts[thumbnailParts.length - 1]
+    const thumbnailPublicId = `photo-browser/thumbnails/${thumbnailIdWithExt.split(".")[0]}`
+
+    // Delete from Cloudinary
+    try {
+      await cloudinary.uploader.destroy(publicId)
+      await cloudinary.uploader.destroy(thumbnailPublicId)
+    } catch (cloudinaryError) {
+      console.error("Cloudinary deletion error:", cloudinaryError)
+      // Continue with database deletion even if Cloudinary fails
+    }
+
+    // Delete from database
+    await Photo.findByIdAndDelete(photo._id)
+
+    return res.json({
+      message: "Photo deleted successfully",
+    })
+  } catch (error) {
+    console.error("Delete error:", error)
+    return res.status(500).json({ error: "Failed to delete photo" })
+  }
+}
