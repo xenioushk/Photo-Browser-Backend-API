@@ -5,6 +5,9 @@ import helmet from "helmet"
 import morgan from "morgan"
 import connectDatabase from "./config/database"
 
+// Rate limiters
+import { apiLimiter } from "./middleware/rateLimiter"
+
 // Routes
 import authRoutes from "./routes/auth"
 import photoRoutes from "./routes/photos"
@@ -31,6 +34,9 @@ app.use(
 app.use(morgan("dev"))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+
+// Apply general rate limiting to all API routes
+app.use("/api", apiLimiter)
 
 // Routes
 app.use("/api/auth", authRoutes)
