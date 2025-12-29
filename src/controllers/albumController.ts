@@ -3,16 +3,52 @@ import Album from "../models/Album"
 import Photo from "../models/Photo"
 import { AuthRequest } from "../middleware/auth"
 
-// GET /api/albums?_page=1&_limit=18
+// GET /api/albums?_page=1&_limit=18&search=vacation&userId=123&sort=title&order=asc
 export const getAlbums = async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query._page as string) || 1
     const limit = parseInt(req.query._limit as string) || 18
     const skip = (page - 1) * limit
+    const search = req.query.search as string
+    const userId = req.query.userId as string
+    const sort = (req.query.sort as string) || "createdAt"
+    const order = (req.query.order as string) === "asc" ? 1 : -1
 
-    const albums = await Album.find().skip(skip).limit(limit).populate("userId", "name email")
+    // Build query filter
+    const filter: any = {}
 
-    return res.json(albums)
+    // Search by title (case-insensitive)
+    if (search) {
+      filter.title = { $regex: search, $options: "i" }
+    }
+
+    // Filter by userId
+    if (userId) {
+      filter.userId = userId
+    }
+
+    // Get total count for pagination metadata
+    const totalCount = await Album.countDocuments(filter)
+    const totalPages = Math.ceil(totalCount / limit)
+
+    // Build sort object
+    const sortObj: any = {}
+    sortObj[sort] = order
+
+    // Fetch albums with filters and sorting
+    const albums = await Album.find(filter).sort(sortObj).skip(skip).limit(limit).populate("userId", "name email")
+
+    return res.json({
+      albums,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    })
   } catch (error) {
     return res.status(500).json({ error: "Failed to fetch albums" })
   }

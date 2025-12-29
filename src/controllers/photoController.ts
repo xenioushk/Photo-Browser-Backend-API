@@ -5,16 +5,61 @@ import cloudinary from "../config/cloudinary"
 import sharp from "sharp"
 import { AuthRequest } from "../middleware/auth"
 
-// GET /api/photos?_page=1&_limit=18
+// GET /api/photos?_page=1&_limit=18&search=sunset&userId=123&albumId=5&sort=createdAt&order=desc
 export const getPhotos = async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query._page as string) || 1
     const limit = parseInt(req.query._limit as string) || 18
     const skip = (page - 1) * limit
+    const search = req.query.search as string
+    const userId = req.query.userId as string
+    const albumId = req.query.albumId as string
+    const sort = (req.query.sort as string) || "createdAt"
+    const order = (req.query.order as string) === "asc" ? 1 : -1
 
-    const photos = await Photo.find().skip(skip).limit(limit).populate("albumId", "title").populate("userId", "name email")
+    // Build query filter
+    const filter: any = {}
 
-    return res.json(photos)
+    // Search by title (case-insensitive)
+    if (search) {
+      filter.title = { $regex: search, $options: "i" }
+    }
+
+    // Filter by userId
+    if (userId) {
+      filter.userId = userId
+    }
+
+    // Filter by albumId
+    if (albumId) {
+      const album = await Album.findOne({ id: parseInt(albumId) })
+      if (album) {
+        filter.albumId = album._id
+      }
+    }
+
+    // Get total count for pagination metadata
+    const totalCount = await Photo.countDocuments(filter)
+    const totalPages = Math.ceil(totalCount / limit)
+
+    // Build sort object
+    const sortObj: any = {}
+    sortObj[sort] = order
+
+    // Fetch photos with filters and sorting
+    const photos = await Photo.find(filter).sort(sortObj).skip(skip).limit(limit).populate("albumId", "title").populate("userId", "name email")
+
+    return res.json({
+      photos,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    })
   } catch (error) {
     return res.status(500).json({ error: "Failed to fetch photos" })
   }
