@@ -200,6 +200,46 @@ Add the JWT token to the Authorization header:
 Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
+## 📚 API Documentation
+
+### Interactive Swagger UI
+
+Access the interactive API documentation at:
+
+**Local Development:**
+
+```
+http://localhost:5001/api-docs
+```
+
+**Production:**
+
+```
+https://your-app.onrender.com/api-docs
+```
+
+### Features:
+
+- **Try it out**: Test all endpoints directly from the browser
+- **Request/Response Examples**: See example data for all endpoints
+- **Authentication**: Test authenticated endpoints with JWT tokens
+- **Schema Definitions**: View all data models and validation rules
+- **Response Codes**: See all possible HTTP status codes
+
+### How to Use Swagger:
+
+1. Open `http://localhost:5001/api-docs` in your browser
+2. Click on any endpoint to expand it
+3. Click "Try it out" to test the endpoint
+4. For protected endpoints:
+   - First, use `/api/auth/login` to get a JWT token
+   - Click "Authorize" button at the top
+   - Enter: `Bearer YOUR_TOKEN_HERE`
+   - Click "Authorize"
+5. Fill in the required parameters
+6. Click "Execute" to make the request
+7. View the response in the interface
+
 ## 📸 Image Upload
 
 ### Upload Photo
@@ -301,7 +341,8 @@ photo-browser-app-backend/
 ├── src/
 │   ├── config/
 │   │   ├── database.ts          # MongoDB connection
-│   │   └── cloudinary.ts        # Cloudinary configuration
+│   │   ├── cloudinary.ts        # Cloudinary configuration
+│   │   └── swagger.ts           # Swagger/OpenAPI configuration
 │   ├── models/
 │   │   ├── User.ts              # User schema & model
 │   │   ├── Album.ts             # Album schema & model
@@ -420,35 +461,43 @@ For validation errors, additional `details` are included:
 ### Error Examples:
 
 #### Duplicate User:
+
 ```json
 {
   "error": "User with this email or username already exists"
 }
 ```
+
 **Status:** `409 Conflict`
 
 #### Invalid Credentials:
+
 ```json
 {
   "error": "Invalid credentials"
 }
 ```
+
 **Status:** `401 Unauthorized`
 
 #### Missing Token:
+
 ```json
 {
   "error": "No token provided"
 }
 ```
+
 **Status:** `401 Unauthorized`
 
 #### Resource Not Found:
+
 ```json
 {
   "error": "Photo not found"
 }
 ```
+
 **Status:** `404 Not Found`
 
 ### Development vs Production:
@@ -498,6 +547,10 @@ Then restart your frontend application.
 - **Security Headers** - Helmet middleware for protection
 - **CORS Configuration** - Cross-origin resource sharing
 - **Request Logging** - Morgan for HTTP request tracking
+- **Rate Limiting** - Protection against API abuse
+- **Request Validation** - Zod schemas for runtime data validation
+- **Centralized Error Handling** - Consistent error responses
+- **Swagger Documentation** - Interactive API docs at `/api-docs`
 
 ### Security Features 🔒
 
