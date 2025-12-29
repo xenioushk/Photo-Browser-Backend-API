@@ -19,6 +19,7 @@ Production-ready RESTful API for Photo Browser Application with JWT authenticati
 - **helmet**: Security headers
 - **cors**: Cross-origin resource sharing
 - **express-rate-limit**: API rate limiting to prevent abuse
+- **Zod**: Runtime request validation and type-safe schemas
 
 ### Image Processing & Storage
 
@@ -319,7 +320,12 @@ photo-browser-app-backend/
 │   ├── middleware/
 │   │   ├── auth.ts              # JWT authentication
 │   │   ├── rateLimiter.ts       # Rate limiting configuration
+│   │   ├── validateRequest.ts   # Zod validation middleware
 │   │   └── upload.ts            # Multer file upload config
+│   ├── schemas/
+│   │   ├── authSchemas.ts       # Auth validation schemas
+│   │   ├── photoSchemas.ts      # Photo validation schemas
+│   │   └── albumSchemas.ts      # Album validation schemas
 │   ├── scripts/
 │   │   └── seedDatabase.ts      # Seed from JSONPlaceholder
 │   └── server.ts                # Express app entry point
@@ -371,6 +377,60 @@ RateLimit-Reset: 1640000000
 
 **Status Code:** `429 Too Many Requests`
 
+## ✅ Request Validation
+
+All API endpoints validate incoming requests using **Zod schemas** for type-safe runtime validation.
+
+### Validation Features:
+
+- **Authentication**: Email format, password length, username constraints
+- **Photos**: Title length, valid URLs, numeric IDs
+- **Albums**: Title requirements, user associations
+- **Query Parameters**: Pagination limits, valid sort fields, numeric filters
+
+### Validation Error Response:
+
+When validation fails, you'll receive a detailed error response:
+
+```json
+{
+  "error": "Validation failed",
+  "details": [
+    {
+      "field": "email",
+      "message": "Invalid email address"
+    },
+    {
+      "field": "password",
+      "message": "Password must be at least 6 characters"
+    }
+  ]
+}
+```
+
+**Status Code:** `400 Bad Request`
+
+### Example Validation Rules:
+
+#### Register User:
+
+- `name`: 2-100 characters
+- `email`: Valid email format
+- `username`: 3-30 characters, alphanumeric and underscores only
+- `password`: 6-100 characters
+
+#### Upload Photo:
+
+- `title`: 1-200 characters (required)
+- `albumId`: Valid numeric ID (required)
+
+#### Query Parameters:
+
+- `_limit`: 1-100 (default: 18)
+- `_page`: Positive integer (default: 1)
+- `sort`: One of `title`, `createdAt`, `updatedAt`
+- `order`: Either `asc` or `desc`
+
 ## 🌐 Connecting Frontend
 
 Update your frontend `.env` file:
@@ -397,6 +457,11 @@ Then restart your frontend application.
 - **TypeScript** - Full type safety and compile-time error checking
 - **Security Headers** - Helmet middleware for protection
 - **CORS Configuration** - Cross-origin resource sharing
+- **Rate Limiting** - Protection against API abuse with configurable limits
+- **Request Validation** - Zod schemas for runtime data validation
+- **Advanced Search** - Search photos and albums by title
+- **Filtering** - Filter by userId, albumId
+- **Sorting** - Sort by title, createdAt, updatedAt (asc/desc)
 - **Request Logging** - Morgan for HTTP request tracking
 
 ### Security Features 🔒
