@@ -22,7 +22,7 @@ const options: swaggerJsdoc.Options = {
         description: "Development server",
       },
       {
-        url: "https://your-app.onrender.com",
+        url: "https://photo-browser-backend-api.onrender.com",
         description: "Production server",
       },
     ],
