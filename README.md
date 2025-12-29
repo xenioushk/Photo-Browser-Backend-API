@@ -448,9 +448,167 @@ REACT_APP_BACKENDURL=https://your-app.onrender.com/api
 
 MIT
 
+## 🌐 Deployment
+
+### Deploy to Render.com
+
+#### 1. Prepare for Deployment
+
+Ensure your `package.json` has the correct build and start scripts (already configured):
+
+```json
+{
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "nodemon src/server.ts"
+  }
+}
+```
+
+#### 2. Create Render Account
+
+1. Go to https://render.com
+2. Sign up with your GitHub account
+3. Connect your GitHub repository
+
+#### 3. Create Web Service
+
+1. Click **"New +"** → **"Web Service"**
+2. Connect to your GitHub repository: `photo-browser-app-backend`
+3. Configure the service:
+   - **Name**: `photo-browser-backend`
+   - **Environment**: `Node`
+   - **Build Command**: `npm install && npm run build`
+   - **Start Command**: `npm start`
+   - **Instance Type**: Free
+
+#### 4. Add Environment Variables
+
+In Render dashboard, add all environment variables from your `.env`:
+
+```
+PORT=5000
+NODE_ENV=production
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/photo-browser?retryWrites=true&w=majority
+JWT_SECRET=your-production-jwt-secret-here
+JWT_EXPIRES_IN=7d
+CLIENT_URL=https://your-frontend-domain.com
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+```
+
+**Important Security Notes**:
+
+- Use a strong, unique `JWT_SECRET` for production
+- Update `CLIENT_URL` with your deployed frontend URL
+- Ensure MongoDB Atlas Network Access allows Render's IP addresses
+- Never commit `.env` file to GitHub
+
+#### 5. Deploy
+
+1. Click **"Create Web Service"**
+2. Render will automatically build and deploy your app
+3. Your API will be available at: `https://your-app-name.onrender.com`
+
+#### 6. Verify Deployment
+
+Test the health endpoint:
+
+```bash
+curl https://your-app-name.onrender.com/health
+```
+
+Expected response:
+
+```json
+{
+  "status": "OK",
+  "message": "Photo Browser API is running"
+}
+```
+
+#### 7. Update Frontend
+
+Update your frontend `.env` to point to the deployed backend:
+
+```env
+REACT_APP_BACKENDURL=https://your-app-name.onrender.com/api
+```
+
+### Deploy to Other Platforms
+
+#### Heroku
+
+```bash
+heroku create photo-browser-backend
+heroku config:set MONGODB_URI=your-mongodb-uri
+heroku config:set JWT_SECRET=your-jwt-secret
+# Add other environment variables
+git push heroku main
+```
+
+#### Railway
+
+1. Go to https://railway.app
+2. Connect GitHub repository
+3. Add environment variables
+4. Deploy automatically
+
+#### AWS EC2 (Advanced)
+
+1. Launch EC2 instance with Node.js
+2. Clone repository
+3. Install dependencies
+4. Set up PM2 for process management
+5. Configure Nginx as reverse proxy
+
+### MongoDB Atlas Production Settings
+
+1. **Network Access**:
+
+   - Remove `0.0.0.0/0` (development wildcard)
+   - Add Render/Heroku IP addresses only
+
+2. **Database Users**:
+
+   - Use strong, unique passwords
+   - Limit privileges to specific database
+
+3. **Monitoring**:
+   - Enable MongoDB Atlas monitoring
+   - Set up alerts for connection issues
+
+### Continuous Deployment
+
+Render automatically deploys when you push to `main` branch:
+
+```bash
+git add .
+git commit -m "Update feature"
+git push origin main
+```
+
+Render will:
+
+1. Detect the push
+2. Run build command
+3. Deploy new version
+4. Zero downtime deployment
+
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome!
+
+## 📞 Support & Resources
+
+- [Express.js Documentation](https://expressjs.com)
+- [MongoDB Atlas Docs](https://docs.atlas.mongodb.com)
+- [Mongoose Documentation](https://mongoosejs.com)
+- [Cloudinary Documentation](https://cloudinary.com/documentation)
+- [Render Deployment Guide](https://render.com/docs)
+- [JWT Best Practices](https://jwt.io/introduction)
 
 ---
 
