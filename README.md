@@ -19,6 +19,7 @@ Production-ready RESTful API for Photo Browser Application with JWT authenticati
 - **helmet**: Security headers
 - **cors**: Cross-origin resource sharing
 - **express-rate-limit**: API rate limiting to prevent abuse
+- **Zod**: Runtime request validation and type-safe schemas
 
 ### Image Processing & Storage
 
@@ -367,8 +368,6 @@ photo-browser-app-backend/
 │   │   ├── authSchemas.ts       # Auth validation schemas
 │   │   ├── photoSchemas.ts      # Photo validation schemas
 │   │   └── albumSchemas.ts      # Album validation schemas
-│   ├── utils/
-│   │   └── errors.ts            # Custom error classes
 │   ├── scripts/
 │   │   └── seedDatabase.ts      # Seed from JSONPlaceholder
 │   └── server.ts                # Express app entry point
@@ -420,21 +419,20 @@ RateLimit-Reset: 1640000000
 
 **Status Code:** `429 Too Many Requests`
 
-## ⚠️ Error Handling
+## ✅ Request Validation
 
-The API uses a **centralized error handling system** with custom error classes and consistent error responses.
+All API endpoints validate incoming requests using **Zod schemas** for type-safe runtime validation.
 
-### Error Response Format:
+### Validation Features:
 
-All errors return a JSON response with an `error` field:
+- **Authentication**: Email format, password length, username constraints
+- **Photos**: Title length, valid URLs, numeric IDs
+- **Albums**: Title requirements, user associations
+- **Query Parameters**: Pagination limits, valid sort fields, numeric filters
 
-```json
-{
-  "error": "Error message here"
-}
-```
+### Validation Error Response:
 
-For validation errors, additional `details` are included:
+When validation fails, you'll receive a detailed error response:
 
 ```json
 {
@@ -443,82 +441,37 @@ For validation errors, additional `details` are included:
     {
       "field": "email",
       "message": "Invalid email address"
+    },
+    {
+      "field": "password",
+      "message": "Password must be at least 6 characters"
     }
   ]
 }
 ```
 
-### Common HTTP Status Codes:
+**Status Code:** `400 Bad Request`
 
-- **400 Bad Request** - Invalid input data or validation errors
-- **401 Unauthorized** - Missing or invalid authentication token
-- **403 Forbidden** - User doesn't have permission for this action
-- **404 Not Found** - Resource doesn't exist
-- **409 Conflict** - Resource already exists (e.g., duplicate email)
-- **429 Too Many Requests** - Rate limit exceeded
-- **500 Internal Server Error** - Unexpected server error
+### Example Validation Rules:
 
-### Error Examples:
+#### Register User:
 
-#### Duplicate User:
+- `name`: 2-100 characters
+- `email`: Valid email format
+- `username`: 3-30 characters, alphanumeric and underscores only
+- `password`: 6-100 characters
 
-```json
-{
-  "error": "User with this email or username already exists"
-}
-```
+#### Upload Photo:
 
-**Status:** `409 Conflict`
+- `title`: 1-200 characters (required)
+- `albumId`: Valid numeric ID (required)
 
-#### Invalid Credentials:
+#### Query Parameters:
 
-```json
-{
-  "error": "Invalid credentials"
-}
-```
-
-**Status:** `401 Unauthorized`
-
-#### Missing Token:
-
-```json
-{
-  "error": "No token provided"
-}
-```
-
-**Status:** `401 Unauthorized`
-
-#### Resource Not Found:
-
-```json
-{
-  "error": "Photo not found"
-}
-```
-
-**Status:** `404 Not Found`
-
-### Development vs Production:
-
-In **development** mode, internal server errors include stack traces:
-
-```json
-{
-  "error": "Internal server error",
-  "message": "Detailed error message",
-  "stack": "Error: ...\n    at ..."
-}
-```
-
-In **production**, stack traces are hidden for security:
-
-```json
-{
-  "error": "Internal server error"
-}
-```
+- `_limit`: 1-100 (default: 18)
+- `_page`: Positive integer (default: 1)
+- `sort`: One of `title`, `createdAt`, `updatedAt`
+- `order`: Either `asc` or `desc`
 
 ## 🌐 Connecting Frontend
 
@@ -546,6 +499,11 @@ Then restart your frontend application.
 - **TypeScript** - Full type safety and compile-time error checking
 - **Security Headers** - Helmet middleware for protection
 - **CORS Configuration** - Cross-origin resource sharing
+- **Rate Limiting** - Protection against API abuse with configurable limits
+- **Request Validation** - Zod schemas for runtime data validation
+- **Advanced Search** - Search photos and albums by title
+- **Filtering** - Filter by userId, albumId
+- **Sorting** - Sort by title, createdAt, updatedAt (asc/desc)
 - **Request Logging** - Morgan for HTTP request tracking
 - **Rate Limiting** - Protection against API abuse
 - **Request Validation** - Zod schemas for runtime data validation
