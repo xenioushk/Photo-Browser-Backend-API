@@ -318,8 +318,16 @@ photo-browser-app-backend/
 │   │   └── users.ts             # User routes
 │   ├── middleware/
 │   │   ├── auth.ts              # JWT authentication
+│   │   ├── errorHandler.ts      # Global error handling
 │   │   ├── rateLimiter.ts       # Rate limiting configuration
+│   │   ├── validateRequest.ts   # Zod validation middleware
 │   │   └── upload.ts            # Multer file upload config
+│   ├── schemas/
+│   │   ├── authSchemas.ts       # Auth validation schemas
+│   │   ├── photoSchemas.ts      # Photo validation schemas
+│   │   └── albumSchemas.ts      # Album validation schemas
+│   ├── utils/
+│   │   └── errors.ts            # Custom error classes
 │   ├── scripts/
 │   │   └── seedDatabase.ts      # Seed from JSONPlaceholder
 │   └── server.ts                # Express app entry point
@@ -370,6 +378,98 @@ RateLimit-Reset: 1640000000
 ```
 
 **Status Code:** `429 Too Many Requests`
+
+## ⚠️ Error Handling
+
+The API uses a **centralized error handling system** with custom error classes and consistent error responses.
+
+### Error Response Format:
+
+All errors return a JSON response with an `error` field:
+
+```json
+{
+  "error": "Error message here"
+}
+```
+
+For validation errors, additional `details` are included:
+
+```json
+{
+  "error": "Validation failed",
+  "details": [
+    {
+      "field": "email",
+      "message": "Invalid email address"
+    }
+  ]
+}
+```
+
+### Common HTTP Status Codes:
+
+- **400 Bad Request** - Invalid input data or validation errors
+- **401 Unauthorized** - Missing or invalid authentication token
+- **403 Forbidden** - User doesn't have permission for this action
+- **404 Not Found** - Resource doesn't exist
+- **409 Conflict** - Resource already exists (e.g., duplicate email)
+- **429 Too Many Requests** - Rate limit exceeded
+- **500 Internal Server Error** - Unexpected server error
+
+### Error Examples:
+
+#### Duplicate User:
+```json
+{
+  "error": "User with this email or username already exists"
+}
+```
+**Status:** `409 Conflict`
+
+#### Invalid Credentials:
+```json
+{
+  "error": "Invalid credentials"
+}
+```
+**Status:** `401 Unauthorized`
+
+#### Missing Token:
+```json
+{
+  "error": "No token provided"
+}
+```
+**Status:** `401 Unauthorized`
+
+#### Resource Not Found:
+```json
+{
+  "error": "Photo not found"
+}
+```
+**Status:** `404 Not Found`
+
+### Development vs Production:
+
+In **development** mode, internal server errors include stack traces:
+
+```json
+{
+  "error": "Internal server error",
+  "message": "Detailed error message",
+  "stack": "Error: ...\n    at ..."
+}
+```
+
+In **production**, stack traces are hidden for security:
+
+```json
+{
+  "error": "Internal server error"
+}
+```
 
 ## 🌐 Connecting Frontend
 

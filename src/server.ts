@@ -8,6 +8,9 @@ import connectDatabase from "./config/database"
 // Rate limiters
 import { apiLimiter } from "./middleware/rateLimiter"
 
+// Error handler
+import { errorHandler } from "./middleware/errorHandler"
+
 // Routes
 import authRoutes from "./routes/auth"
 import photoRoutes from "./routes/photos"
@@ -53,6 +56,9 @@ app.get("/health", (_req: Request, res: Response) => {
 app.use((_req: Request, res: Response) => {
   res.status(404).json({ error: "Route not found" })
 })
+
+// Global error handler (must be last)
+app.use(errorHandler)
 
 // Start server
 const PORT = process.env.PORT || 5000
